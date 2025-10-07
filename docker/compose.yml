@@ -1,0 +1,24 @@
+services:
+  db:
+    image: postgres:16
+    container_name: quest_db
+    environment:
+      POSTGRES_DB: questboard
+      POSTGRES_USER: quest
+      POSTGRES_PASSWORD: questpw
+    ports:
+      - "5432:5432"
+    volumes:
+      - quest_pgdata:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/00-init.sql:ro
+
+  adminer:
+    image: adminer
+    container_name: quest_adminer
+    ports:
+      - "8081:8080"
+    depends_on: [db]
+
+volumes:
+  quest_pgdata:
+
