@@ -32,7 +32,7 @@ func (s *server) tokensForRequest(r *http.Request) (*asanaTokens, error) {
 	if err != nil {
 		return nil, err
 	}
-	// refresh a little early
+
 	if time.Now().After(t.ExpiresAt.Add(-2 * time.Minute)) && t.RefreshToken != "" {
 		if err := s.refreshAsanaTokens(&t); err != nil {
 			return nil, err
@@ -95,10 +95,16 @@ func (s *server) asanaGET(r *http.Request, path string, q url.Values, out any) e
 	if err != nil { return err }
 	defer res.Body.Close()
 
+	// if res.StatusCode != http.StatusOK {
+	// 	b, _ := io.ReadAll(res.Body)
+	// 	return errors.New("asana GET failed: " + string(b))
+	// }
 	if res.StatusCode != http.StatusOK {
 		b, _ := io.ReadAll(res.Body)
-		return errors.New("asana GET failed: " + string(b))
+		httpErr := errors.New(string(b))
+		return httpErr
 	}
+
 	return json.NewDecoder(res.Body).Decode(out)
 }
 

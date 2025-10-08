@@ -16,6 +16,11 @@ func (s *server) mountAsana(mux *http.ServeMux) {
 //GET /asana/projects
 func (s *server) handleAsanaProjects(w http.ResponseWriter, r *http.Request) {
 	//first, get the user's workspaces
+	if _, err := s.tokensForRequest(r); err != nil {
+		http.Error(w, "not logged in", http.StatusUnauthorized)
+		return
+	}
+
 	var me struct{ Data struct {
 		Workspaces []struct{ Gid, Name string } `json:"workspaces"`
 	} `json:"data"` }
@@ -46,6 +51,11 @@ func (s *server) handleAsanaProjects(w http.ResponseWriter, r *http.Request) {
 
 //GET /asana/projects/{gid}/tasks
 func (s *server) handleAsanaProjectTasks(w http.ResponseWriter, r *http.Request) {
+	if _, err := s.tokensForRequest(r); err != nil {
+		http.Error(w, "not logged in", http.StatusUnauthorized)
+		return
+	}
+
 	gid := r.PathValue("gid")
 	if gid == "" { http.Error(w, "missing project gid", 400); return }
 
