@@ -29,3 +29,9 @@ export async function listProjectTasks(projectGid, fetchFn = fetch) {
 	return res.json();
 }
 
+export async function syncMe(fetchFn = fetch) {
+	const res = await fetchFn(`/api/asana/sync/me`, { method:'POST', credentials:'include' });
+	if (!res.ok) throw new Error('sync failed');
+}
+
+

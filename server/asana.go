@@ -11,11 +11,46 @@ import (
 	"time"
 )
 
+type asanaTask struct {
+	Gid string `json:"gid"`
+	Completed bool `json:"completed"`
+	Assignee *struct {
+		Gid string `json:"gid"`
+		Name string `json:"name"`
+	} `json:"assignee"`
+}
+
 type asanaTokens struct {
 	AccessToken  string
 	RefreshToken string
 	ExpiresAt    time.Time
 	UserID       string // asana gid
+}
+
+func (s *server) listAllProjectTasks(r *http.Request, projectGID string) ([]asanaTask, error) {
+	fields := "gid,completed,assignee.gid,assignee.name"
+	var all []asanaTask
+	offset := ""
+	for {
+		q := url.Values{
+			"limit":      {"50"},
+			"opt_fields": {fields},
+			"completed_since": {"1970-01-01T00:00:00Z"},
+		}
+		if offset != "" { q.Set("offset", offset) }
+
+		var page struct {
+			Data     []asanaTask `json:"data"`
+			NextPage *struct{ Offset string `json:"offset"` } `json:"next_page"`
+		}
+		if err := s.asanaGET(r, "/projects/"+projectGID+"/tasks", q, &page); err != nil {
+			return nil, err
+		}
+		all = append(all, page.Data...)
+		if page.NextPage == nil || page.NextPage.Offset == "" { break }
+		offset = page.NextPage.Offset
+	}
+	return all, nil
 }
 
 func (s *server) tokensForRequest(r *http.Request) (*asanaTokens, error) {

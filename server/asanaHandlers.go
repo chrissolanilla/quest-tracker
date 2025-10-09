@@ -9,8 +9,8 @@ import (
 
 func (s *server) mountAsana(mux *http.ServeMux) {
 	mux.HandleFunc("GET /asana/projects", s.handleAsanaProjects)
-	//tasks for a specific project with GET /asana/projects/{gid}/tasks
 	mux.HandleFunc("GET /asana/projects/{gid}/tasks", s.handleAsanaProjectTasks)
+	mux.HandleFunc("POST /asana/sync/me", s.handleSyncMe)
 }
 
 //GET /asana/projects
@@ -102,6 +102,23 @@ func (s *server) handleAsanaProjectTasks(w http.ResponseWriter, r *http.Request)
 	}
 	writeJSON(w, all)
 }
+
+
+func (s *server) handleSyncMe(w http.ResponseWriter, r *http.Request) {
+	//get current session user
+	sid := getSessionCookie(r)
+	if sid == "" { http.Error(w, "unauthorized", http.StatusUnauthorized); return }
+
+	var userID string
+	err := s.db.QueryRow(`select user_id from sessions where id=$1`, sid).Scan(&userID)
+	if err != nil { http.Error(w, "unauthorized", http.StatusUnauthorized); return }
+
+	if err := s.recomputePointsForUser(r, userID); err != nil {
+		http.Error(w, err.Error(), 502); return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
 
 func writeJSON(w http.ResponseWriter, v any) {
 	w.Header().Set("Content-Type", "application/json")

@@ -201,6 +201,11 @@ func (s *server) handleAsanaCallback(w http.ResponseWriter, r *http.Request) {
 
 	_, _ = s.db.Exec(`delete from sessions_meta where id=$1`, sid)
 
+	go func(r0 *http.Request, uid string) {
+		_ = s.recomputePointsForUser(r0, uid)
+	}(r.Clone(r.Context()), user.Gid)
+
+
 	http.Redirect(w, r, getenv("POST_LOGIN_REDIRECT", "http://localhost:5173/profile"), http.StatusFound)
 }
 

@@ -162,6 +162,11 @@ func ensureAuthTables(db *sql.DB) error {
 		  code_verifier TEXT,
 		  created_at TIMESTAMPTZ DEFAULT now()
 		);
+
+		CREATE TABLE IF NOT EXISTS scores (
+		  user_id TEXT PRIMARY KEY REFERENCES users(id),
+		  points  NUMERIC NOT NULL DEFAULT 0
+		);
 	`)
 	return err
 }

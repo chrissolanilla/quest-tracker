@@ -41,6 +41,10 @@
 
 <style style="scss">
 	nav {
+		font-size: 1.5rem;
+		padding: 1rem;
+		gap: 1rem;
+		justify-content: space-between;
 		display: flex;
 		gap: 1rem;
 
@@ -50,5 +54,6 @@
 		a:visited {
 			color: #ff7cc4;
 		}
+		background: black;
 	}
 </style>
